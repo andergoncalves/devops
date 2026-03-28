@@ -38,11 +38,12 @@ jobs:
       # 🔥 NOVA ETAPA (SUBSTITUI RSYNC)
       - name: 📦 Compactar arquivos
         run: |
-          tar --exclude='./node_modules' \
+          tar --warning=no-file-changed \
+              --exclude='./node_modules' \
               --exclude='./.git' \
               --exclude='./.github' \
               --exclude='./.env' \
-              -czf deploy.tar.gz .
+              -czf /tmp/deploy.tar.gz .
 
       - name: 🚀 Enviar via SCP
         run: |
