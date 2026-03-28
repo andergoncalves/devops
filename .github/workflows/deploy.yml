@@ -38,13 +38,13 @@ jobs:
       - name: 🚀 Enviar arquivos com rsync
         run: |
           rsync -avz --delete \
-            --exclude 'node_modules' \
-            --exclude '.git' \
-            --exclude '.github' \
-            --exclude '.env' \
-            -e "ssh -p ${{ secrets.SSH_PORT }}" \
+            --exclude=node_modules \
+            --exclude=.git \
+            --exclude=.github \
+            --exclude=.env \
+            -e "ssh -i ~/.ssh/id_rsa -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no" \
             ./ \
-            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/var/www/app/
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/var/www/app
 
       - name: ♻️ Restart da aplicação
         run: |
