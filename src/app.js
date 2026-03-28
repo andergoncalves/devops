@@ -10,6 +10,13 @@ const app = express();
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 /**
+ * 🔥 ROTA RAIZ (resolve o "Cannot GET /")
+ */
+app.get('/', (req, res) => {
+  res.redirect('/docs');
+});
+
+/**
  * @swagger
  * /calc:
  *   get:
@@ -38,10 +45,6 @@ app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
  *     responses:
  *       200:
  *         description: Resultado da operação
- *         content:
- *           application/json:
- *             example:
- *               resultado: 15
  *       400:
  *         description: Erro na requisição
  */
@@ -51,6 +54,11 @@ app.get('/calc', (req, res) => {
 
   const numA = Number(a);
   const numB = Number(b);
+
+  // 🔥 Validação de entrada
+  if (!op || isNaN(numA) || isNaN(numB)) {
+    return res.status(400).json({ erro: 'Parâmetros inválidos' });
+  }
 
   try {
     let resultado;
@@ -77,6 +85,13 @@ app.get('/calc', (req, res) => {
   } catch (err) {
     res.status(400).json({ erro: err.message });
   }
+});
+
+/**
+ * 🔥 ROTA 404 (boa prática)
+ */
+app.use((req, res) => {
+  res.status(404).json({ erro: 'Rota não encontrada' });
 });
 
 module.exports = app;
