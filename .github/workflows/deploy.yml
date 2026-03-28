@@ -47,7 +47,7 @@ jobs:
 
       - name: 🚀 Enviar via SCP
         run: |
-          scp -P ${{ secrets.SSH_PORT }} deploy.tar.gz \
+          scp -P ${{ secrets.SSH_PORT }} /tmp/deploy.tar.gz \
             ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/var/www/app/
 
       - name: 📂 Extrair e atualizar no servidor
