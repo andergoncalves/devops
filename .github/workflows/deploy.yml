@@ -33,28 +33,38 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.EC2_SSH_PEM }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+          printf "Host *\n  IdentityFile ~/.ssh/id_rsa\n  StrictHostKeyChecking no\n" > ~/.ssh/config
 
-      - name: 🚀 Enviar arquivos com rsync
+      # 🔥 NOVA ETAPA (SUBSTITUI RSYNC)
+      - name: 📦 Compactar arquivos
         run: |
-          rsync -avz --delete \
-            --exclude=node_modules \
-            --exclude=.git \
-            --exclude=.github \
-            --exclude=.env \
-            -e "ssh -i ~/.ssh/id_rsa -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no" \
-            ./ \
-            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/var/www/app
+          tar --exclude='./node_modules' \
+              --exclude='./.git' \
+              --exclude='./.github' \
+              --exclude='./.env' \
+              -czf deploy.tar.gz .
 
-      - name: ♻️ Restart da aplicação
+      - name: 🚀 Enviar via SCP
+        run: |
+          scp -P ${{ secrets.SSH_PORT }} deploy.tar.gz \
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/var/www/app/
+
+      - name: 📂 Extrair e atualizar no servidor
         run: |
           ssh -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
             cd /var/www/app
 
+            echo "🧹 Limpando arquivos antigos (preservando .env)..."
+            find . -mindepth 1 ! -name '.env' -exec rm -rf {} +
+
+            echo "📦 Extraindo novo deploy..."
+            tar -xzf deploy.tar.gz
+            rm deploy.tar.gz
+
             echo "📦 Instalando produção..."
             npm install --production
 
-            echo "♻️ Reload aplicação..."
+            echo "♻️ Reiniciando aplicação..."
             pm2 reload minha-api || pm2 start app.js --name minha-api
 
             pm2 save
