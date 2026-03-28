@@ -45,10 +45,23 @@ jobs:
               --exclude='./.env' \
               -czf /tmp/deploy.tar.gz .
 
+      - name: 🧪 Testar conexão SSH
+        run: |
+          ssh -i ~/.ssh/id_rsa -p ${{ secrets.SSH_PORT }} \
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "echo OK"
+
       - name: 🚀 Enviar via SCP
         run: |
-          scp -P ${{ secrets.SSH_PORT }} /tmp/deploy.tar.gz \
+          scp -i ~/.ssh/id_rsa -P ${{ secrets.SSH_PORT }} /tmp/deploy.tar.gz \
             ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/var/www/app/
+
+      - name: 🔐 Configurar SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_PEM }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+          printf "Host *\n  IdentityFile ~/.ssh/id_rsa\n  StrictHostKeyChecking no\n" > ~/.ssh/config
 
       - name: 📂 Extrair e atualizar no servidor
         run: |
