@@ -5,8 +5,7 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "test": "jest",
-    "build": "rm -rf src && tsc"
+    "test": "jest"
   },
   "keywords": [],
   "author": "",
