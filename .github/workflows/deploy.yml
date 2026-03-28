@@ -17,23 +17,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 18
+          cache: 'npm'
 
       - name: 📦 Instalar dependências
         run: npm install
 
-      # Se seu projeto tiver build (TypeScript, etc)
-      - name: 🏗️ Build do projeto
+      - name: 🏗️ Build do projeto (se existir)
         run: |
-          if [ -f package.json ] && grep -q "\"build\"" package.json; then
+          if grep -q "\"build\"" package.json; then
             npm run build
           fi
-
-      - name: 📦 Preparar arquivos
-        run: |
-          mkdir deploy
-          cp -r * deploy/
-          rm -rf deploy/node_modules
-          rm -rf deploy/.git
 
       - name: 🔐 Configurar SSH
         run: |
@@ -42,22 +35,26 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
-      - name: 🚀 Enviar arquivos (rsync)
+      - name: 🚀 Enviar arquivos com rsync
         run: |
           rsync -avz --delete \
+            --exclude 'node_modules' \
+            --exclude '.git' \
+            --exclude '.github' \
+            --exclude '.env' \
             -e "ssh -p ${{ secrets.SSH_PORT }}" \
-            deploy/ \
+            ./ \
             ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/var/www/app/
 
-      - name: ♻️ Reiniciar aplicação no servidor
+      - name: ♻️ Restart da aplicação
         run: |
           ssh -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
             cd /var/www/app
 
-            echo "📦 Instalando apenas produção..."
+            echo "📦 Instalando produção..."
             npm install --production
 
-            echo "♻️ Reiniciando aplicação..."
+            echo "♻️ Reload aplicação..."
             pm2 reload minha-api || pm2 start app.js --name minha-api
 
             pm2 save
