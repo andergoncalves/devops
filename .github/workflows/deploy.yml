@@ -35,6 +35,13 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           printf "Host *\n  IdentityFile ~/.ssh/id_rsa\n  StrictHostKeyChecking no\n" > ~/.ssh/config
 
+      - name: 🔍 Verificar arquivos
+        run: |
+          echo "LISTANDO ARQUIVOS:"
+          ls -la
+          echo "SRC:"
+          ls -la src || echo "SEM SRC"
+
       # 🔥 NOVA ETAPA (SUBSTITUI RSYNC)
       - name: 📦 Compactar arquivos
         run: |
