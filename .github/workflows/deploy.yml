@@ -86,7 +86,7 @@ jobs:
             npm install --omit=dev
 
             echo "♻️ Reiniciando aplicação..."
-            node /var/www/app/app.js
+            pm2 reload minha-api || pm2 start /var/www/app/src/server.js --name minha-api
 
             pm2 save
           EOF
