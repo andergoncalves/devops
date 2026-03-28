@@ -60,7 +60,7 @@ jobs:
       - name: 🚀 Enviar via SCP
         run: |
           scp -i ~/.ssh/id_rsa -P ${{ secrets.SSH_PORT }} /tmp/deploy.tar.gz \
-            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/var/www/app/
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/
 
       - name: 🔐 Configurar SSH
         run: |
@@ -75,15 +75,15 @@ jobs:
           ssh -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
             cd /var/www/app
 
-            echo "🧹 Limpando arquivos antigos (preservando .env)..."
+            echo "🧹 Limpando aplicação (preservando .env)..."
             find . -mindepth 1 ! -name '.env' -exec rm -rf {} +
 
-            echo "📦 Extraindo novo deploy..."
-            tar -xzf deploy.tar.gz
-            rm deploy.tar.gz
+            echo "📦 Extraindo deploy..."
+            tar -xzf /tmp/deploy.tar.gz -C /var/www/app
+            rm /tmp/deploy.tar.gz
 
             echo "📦 Instalando produção..."
-            npm install --production
+            npm install --omit=dev
 
             echo "♻️ Reiniciando aplicação..."
             pm2 reload minha-api || pm2 start app.js --name minha-api
