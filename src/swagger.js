@@ -8,10 +8,7 @@ const options = {
       title: 'API DevOps - Calculadora',
       version: '1.0.0',
       description: 'API simples de calculadora com Node.js'
-    },
-    servers: [
-      { url: 'http://localhost:3000' }
-    ]
+    }
   },
   apis: [
     path.join(__dirname, 'routes', '*.js'),
