@@ -6,56 +6,28 @@ const swaggerSpec = require('./swagger');
 
 const app = express();
 
+// 🔥 Histórico em memória
+const historico = [];
+
 // Swagger
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 /**
- * 🔥 ROTA RAIZ (resolve o "Cannot GET /")
+ * 🔥 ROTA RAIZ
  */
 app.get('/', (req, res) => {
   res.redirect('/docs');
 });
 
 /**
- * @swagger
- * /calc:
- *   get:
- *     summary: Realiza operações matemáticas
- *     description: Soma, subtração, multiplicação ou divisão
- *     parameters:
- *       - in: query
- *         name: op
- *         schema:
- *           type: string
- *           enum: [soma, sub, mult, div]
- *         required: true
- *         description: Operação
- *       - in: query
- *         name: a
- *         schema:
- *           type: number
- *         required: true
- *         description: Primeiro número
- *       - in: query
- *         name: b
- *         schema:
- *           type: number
- *         required: true
- *         description: Segundo número
- *     responses:
- *       200:
- *         description: Resultado da operação
- *       400:
- *         description: Erro na requisição
+ * 🔥 CALCULADORA
  */
-
 app.get('/calc', (req, res) => {
   const { op, a, b } = req.query;
 
   const numA = Number(a);
   const numB = Number(b);
 
-  // 🔥 Validação de entrada
   if (!op || isNaN(numA) || isNaN(numB)) {
     return res.status(400).json({ erro: 'Parâmetros inválidos' });
   }
@@ -80,6 +52,15 @@ app.get('/calc', (req, res) => {
         return res.status(400).json({ erro: 'Operação inválida' });
     }
 
+    // 🔥 SALVAR HISTÓRICO
+    historico.push({
+      operacao: op,
+      a: numA,
+      b: numB,
+      resultado,
+      data: new Date().toISOString()
+    });
+
     res.json({ resultado });
 
   } catch (err) {
@@ -88,7 +69,22 @@ app.get('/calc', (req, res) => {
 });
 
 /**
- * 🔥 ROTA 404 (boa prática)
+ * 🔥 LISTAR HISTÓRICO
+ */
+app.get('/historico', (req, res) => {
+  res.json(historico);
+});
+
+/**
+ * 🔥 LIMPAR HISTÓRICO
+ */
+app.delete('/historico', (req, res) => {
+  historico.length = 0;
+  res.json({ mensagem: 'Histórico limpo com sucesso' });
+});
+
+/**
+ * 🔥 404
  */
 app.use((req, res) => {
   res.status(404).json({ erro: 'Rota não encontrada' });

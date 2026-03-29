@@ -1,4 +1,4 @@
-name: Build e Deploy Node via SSH
+name: Deploy Docker ECR
 
 on:
   push:
@@ -6,88 +6,71 @@ on:
       - main
 
 jobs:
-  build-deploy:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
       - name: 📥 Checkout
         uses: actions/checkout@v4
 
-      - name: 🟢 Setup Node
-        uses: actions/setup-node@v4
+      - name: 🔐 Configurar AWS
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          node-version: 18
-          cache: 'npm'
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: 📦 Instalar dependências
-        run: npm install
+      - name: 🔑 Login no ECR
+        uses: aws-actions/amazon-ecr-login@v2
 
-      - name: 🏗️ Build do projeto (se existir)
+      - name: 🐳 Build da imagem
         run: |
-          if grep -q "\"build\"" package.json; then
-            npm run build
-          fi
+          IMAGE_NAME=${{ secrets.CONTAINER_NAME }}
+          docker build -t $IMAGE_NAME .
 
-      - name: 🔐 Configurar SSH
+      - name: 🏷️ Tag da imagem
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_PEM }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          printf "Host *\n  IdentityFile ~/.ssh/id_rsa\n  StrictHostKeyChecking no\n" > ~/.ssh/config
+          IMAGE_NAME=${{ secrets.CONTAINER_NAME }}
+          docker tag $IMAGE_NAME:latest ${{ secrets.ECR_REPOSITORY }}:latest
 
-      - name: 🔍 Verificar arquivos
+      - name: 🚀 Push para ECR
         run: |
-          echo "LISTANDO ARQUIVOS:"
-          ls -la
-          echo "SRC:"
-          ls -la src || echo "SEM SRC"
+          docker push ${{ secrets.ECR_REPOSITORY }}:latest
 
-      # 🔥 NOVA ETAPA (SUBSTITUI RSYNC)
-      - name: 📦 Compactar arquivos
-        run: |
-          tar --warning=no-file-changed \
-              --exclude='./node_modules' \
-              --exclude='./.git' \
-              --exclude='./.github' \
-              --exclude='./.env' \
-              -czf /tmp/deploy.tar.gz .
-
-      - name: 🧪 Testar conexão SSH
-        run: |
-          ssh -i ~/.ssh/id_rsa -p ${{ secrets.SSH_PORT }} \
-            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "echo OK"
-
-      - name: 🚀 Enviar via SCP
-        run: |
-          scp -i ~/.ssh/id_rsa -P ${{ secrets.SSH_PORT }} /tmp/deploy.tar.gz \
-            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/
-
-      - name: 🔐 Configurar SSH
+      - name: 🔐 SSH no servidor
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_PEM }}" > ~/.ssh/id_rsa
+          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
-          printf "Host *\n  IdentityFile ~/.ssh/id_rsa\n  StrictHostKeyChecking no\n" > ~/.ssh/config
-
-      - name: 📂 Extrair e atualizar no servidor
+      - name: 🚀 Atualizar container
         run: |
-          ssh -p ${{ secrets.SSH_PORT }} ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-            cd /var/www/app
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+            CONTAINER_NAME=${{ secrets.CONTAINER_NAME }}
+            ECR_URI=${{ secrets.ECR_REPOSITORY }}
+            PORT=${{ secrets.CONTAINER_PORT }}
 
-            echo "🧹 Limpando aplicação (preservando .env)..."
-            find . -mindepth 1 ! -name '.env' -exec rm -rf {} +
+            echo "🔑 Login ECR..."
+            aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | \
+            docker login --username AWS --password-stdin 197034345540.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
 
-            echo "📦 Extraindo deploy..."
-            tar -xzf /tmp/deploy.tar.gz -C /var/www/app
-            rm /tmp/deploy.tar.gz
+            echo "📥 Pull da nova imagem..."
+            docker pull $ECR_URI:latest
 
-            echo "📦 Instalando produção..."
-            npm install --omit=dev
+            # Backup rápido dos logs antigos
+            if [ $(docker ps -a -q -f name=$CONTAINER_NAME) ]; then
+              echo "💾 Backup logs do container existente..."
+              docker logs $CONTAINER_NAME > "/tmp/${CONTAINER_NAME}_logs_$(date +%Y%m%d%H%M%S).log" || true
+            fi
 
-            echo "♻️ Reiniciando aplicação..."
-            pm2 delete minha-api || true
-            pm2 start /var/www/app/src/server.js --name minha-api
+            echo "🛑 Parando container antigo..."
+            docker stop $CONTAINER_NAME || true
+            docker rm $CONTAINER_NAME || true
 
-            pm2 save
+            echo "🚀 Subindo novo container..."
+            docker run -d \
+              -p ${PORT}:${PORT} \
+              --name $CONTAINER_NAME \
+              --restart always \
+              $ECR_URI:latest
           EOF
