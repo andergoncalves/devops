@@ -24,9 +24,9 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: 🐳 Build da imagem
-        run: |
-          IMAGE_NAME=${{ secrets.CONTAINER_NAME }}
-          docker build -t $IMAGE_NAME .
+    run: |
+    IMAGE_NAME=${{ secrets.CONTAINER_NAME }}
+    docker buildx build -t $IMAGE_NAME . --load
 
       - name: 🏷️ Tag da imagem
         run: |
