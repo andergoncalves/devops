@@ -23,10 +23,11 @@ jobs:
       - name: 🔑 Login no ECR
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: 🐳 Build da imagem
-    run: |
-    IMAGE_NAME=${{ secrets.CONTAINER_NAME }}
-    docker buildx build -t $IMAGE_NAME . --load
+      - name: 🐳 Build da imagem com Buildx
+        run: |
+          IMAGE_NAME=${{ secrets.CONTAINER_NAME }}
+          docker buildx create --use || true  # Cria builder se não existir
+          docker buildx build -t $IMAGE_NAME . --load
 
       - name: 🏷️ Tag da imagem
         run: |
@@ -43,21 +44,21 @@ jobs:
           echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
 
-      - name: 🚀 Atualizar container
+      - name: 🚀 Atualizar container no servidor
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
             CONTAINER_NAME=${{ secrets.CONTAINER_NAME }}
             ECR_URI=${{ secrets.ECR_REPOSITORY }}
             PORT=${{ secrets.CONTAINER_PORT }}
 
-            echo "🔑 Login ECR..."
+            echo "🔑 Login no ECR..."
             aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | \
             docker login --username AWS --password-stdin 197034345540.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
 
             echo "📥 Pull da nova imagem..."
             docker pull $ECR_URI:latest
 
-            # Backup rápido dos logs antigos
+            # Backup dos logs antigos
             if [ $(docker ps -a -q -f name=$CONTAINER_NAME) ]; then
               echo "💾 Backup logs do container existente..."
               docker logs $CONTAINER_NAME > "/tmp/${CONTAINER_NAME}_logs_$(date +%Y%m%d%H%M%S).log" || true
