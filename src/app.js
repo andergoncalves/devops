@@ -21,10 +21,136 @@ app.get('/', (req, res) => {
 });
 
 /**
- * 🔥 CALCULAR - USANDO GET (para query) ou POST (para body)
- * GET /calc?op=soma&a=2&b=3
- * POST /calc { op: 'soma', a: 2, b: 3 }
+ * @swagger
+ * /:
+ *   get:
+ *     summary: Redireciona para o Swagger UI
+ *     responses:
+ *       302:
+ *         description: Redirecionamento para /docs
  */
+
+/**
+ * @swagger
+ * /calc:
+ *   get:
+ *     summary: Realiza operações matemáticas via query params
+ *     parameters:
+ *       - in: query
+ *         name: op
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Operação: soma, sub, mult, div
+ *       - in: query
+ *         name: a
+ *         schema:
+ *           type: number
+ *         required: true
+ *         description: Número A
+ *       - in: query
+ *         name: b
+ *         schema:
+ *           type: number
+ *         required: true
+ *         description: Número B
+ *     responses:
+ *       200:
+ *         description: Resultado do cálculo
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 resultado:
+ *                   type: number
+ *       400:
+ *         description: Parâmetros inválidos
+ *
+ *   post:
+ *     summary: Realiza operações matemáticas via body JSON
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - op
+ *               - a
+ *               - b
+ *             properties:
+ *               op:
+ *                 type: string
+ *                 description: Operação: soma, sub, mult, div
+ *               a:
+ *                 type: number
+ *               b:
+ *                 type: number
+ *     responses:
+ *       200:
+ *         description: Resultado do cálculo
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 resultado:
+ *                   type: number
+ *       400:
+ *         description: Parâmetros inválidos
+ */
+
+/**
+ * @swagger
+ * /historico:
+ *   get:
+ *     summary: Lista histórico de operações
+ *     responses:
+ *       200:
+ *         description: Lista de operações
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   operacao:
+ *                     type: string
+ *                   a:
+ *                     type: number
+ *                   b:
+ *                     type: number
+ *                   resultado:
+ *                     type: number
+ *                   data:
+ *                     type: string
+ *                     format: date-time
+ *   delete:
+ *     summary: Limpa histórico de operações
+ *     responses:
+ *       200:
+ *         description: Mensagem de sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 mensagem:
+ *                   type: string
+ */
+
+/**
+ * @swagger
+ * /404:
+ *   get:
+ *     summary: Rota não encontrada
+ *     responses:
+ *       404:
+ *         description: Erro de rota não encontrada
+ */
+
 app.route('/calc')
   .get((req, res) => {
     const { op, a, b } = req.query;
