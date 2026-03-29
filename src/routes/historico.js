@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const historico = require('../historicoData');
+const { historico, salvar } = require('../historicoData');
 
 /**
  * @swagger
@@ -41,12 +41,16 @@ const historico = require('../historicoData');
  *                 mensagem:
  *                   type: string
  */
+
+// GET histórico
 router.get('/', (req, res) => {
   res.json(historico);
 });
 
+// DELETE histórico
 router.delete('/', (req, res) => {
   historico.length = 0;
+  salvar(); // grava histórico vazio
   res.json({ mensagem: 'Histórico limpo com sucesso' });
 });
 
