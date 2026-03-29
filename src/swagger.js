@@ -1,4 +1,5 @@
 const swaggerJsdoc = require('swagger-jsdoc');
+const path = require('path');
 
 const options = {
   definition: {
@@ -7,9 +8,14 @@ const options = {
       title: 'API DevOps - Calculadora',
       version: '1.0.0',
       description: 'API simples de calculadora com Node.js'
-    }
+    },
+    servers: [
+      {
+        url: 'http://localhost:3000'
+      }
+    ]
   },
-  apis: ['./src/app.js'], // onde estão as rotas documentadas
+  apis: [path.join(__dirname, 'src', '*.js')] // 📌 pega todos os arquivos .js da pasta src
 };
 
 const swaggerSpec = swaggerJsdoc(options);
