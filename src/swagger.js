@@ -1,5 +1,4 @@
 const swaggerJsdoc = require('swagger-jsdoc');
-const path = require('path');
 
 const options = {
   definition: {
@@ -11,8 +10,8 @@ const options = {
     }
   },
   apis: [
-    path.join(__dirname, 'routes', '*.js'),
-    path.join(__dirname, '*.js')
+    './routes/*.js', // inclui calc.js e historico.js
+    './*.js'         // caso queira incluir outros arquivos na raiz
   ]
 };
 
