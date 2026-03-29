@@ -15,7 +15,7 @@ const options = {
       }
     ]
   },
-  apis: [path.join(__dirname, 'src', '*.js')] // 📌 pega todos os arquivos .js da pasta src
+  apis: [path.join(__dirname, '*.js')] // pega todos os arquivos .js dentro de src
 };
 
 const swaggerSpec = swaggerJsdoc(options);
