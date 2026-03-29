@@ -14,8 +14,8 @@ const options = {
     ]
   },
   apis: [
-    path.join(__dirname, 'routes', '*.js'), // todas as rotas
-    path.join(__dirname, '*.js')            // app.js se tiver rotas
+    path.join(__dirname, 'routes', '*.js'),
+    path.join(__dirname, '*.js')
   ]
 };
 

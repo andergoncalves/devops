@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const calc = require('../calculator');
-const historico = require('../app').historico;
+const historico = require('../historicoData');
 
 /**
  * @swagger
@@ -14,7 +14,7 @@ const historico = require('../app').historico;
  *         schema:
  *           type: string
  *         required: true
- *         description: Operação: soma, sub, mult, div
+ *         description: "Operação: soma, sub, mult, div"
  *       - in: query
  *         name: a
  *         schema:
@@ -85,6 +85,7 @@ function processCalc(op, a, b, res) {
 
   try {
     let resultado;
+
     switch (op) {
       case 'soma':
         resultado = calc.soma(numA, numB);
@@ -102,7 +103,6 @@ function processCalc(op, a, b, res) {
         return res.status(400).json({ erro: 'Operação inválida' });
     }
 
-    // Salvar histórico
     historico.push({
       operacao: op,
       a: numA,

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const historico = require('../app').historico;
+const historico = require('../historicoData');
 
 /**
  * @swagger
