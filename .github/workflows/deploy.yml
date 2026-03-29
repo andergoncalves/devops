@@ -23,7 +23,7 @@ jobs:
       - name: 🔑 Login no ECR
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: 🐳 Build e tag da imagem ECR
+      - name: 🐳 Build e tag da imagem para ECR
         run: |
           echo "🛠️ Build da imagem para ECR..."
           docker buildx create --use || true
@@ -56,18 +56,16 @@ jobs:
             echo "📥 Pull da nova imagem..."
             docker pull $ECR_URI:latest
 
-            # Verifica se o container existe antes de parar
-            if [ \$(docker ps -aq -f name=\$CONTAINER_NAME) ]; then
-              echo "💾 Backup logs do container existente..."
+            # Só para/remover container se existir
+            CONTAINER_ID=\$(docker ps -aq -f name=\$CONTAINER_NAME)
+            if [ -n "\$CONTAINER_ID" ]; then
+              echo "💾 Backup logs..."
               docker logs \$CONTAINER_NAME > "/tmp/\${CONTAINER_NAME}_logs_\$(date +%Y%m%d%H%M%S).log" || true
 
               echo "🛑 Parando e removendo container antigo..."
               docker stop \$CONTAINER_NAME || true
               docker rm \$CONTAINER_NAME || true
             fi
-
-            echo "🧹 Limpando containers/imagens dangling..."
-            docker system prune -f
 
             echo "🚀 Subindo novo container..."
             docker run -d \
@@ -76,5 +74,5 @@ jobs:
               --restart always \
               \$ECR_URI:latest
 
-            echo "✅ Deploy finalizado com sucesso!"
+            echo "✅ Deploy finalizado!"
           EOF
