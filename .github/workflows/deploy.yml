@@ -1,4 +1,4 @@
-name: Deploy Docker ECR
+name: Deploy Docker ECR2
 
 on:
   push:
