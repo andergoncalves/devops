@@ -70,7 +70,7 @@ jobs:
             docker stop $CONTAINER_NAME || true
             docker rm $CONTAINER_NAME || true
 
-            echo "🧹 Removendo containers e imagens dangling..."
+            echo "🧹 Removendo containers e imagens dangling....."
             docker system prune -f
 
             echo "🚀 Subindo novo container..."
