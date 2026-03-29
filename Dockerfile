@@ -12,6 +12,6 @@ RUN npm install --omit=dev
 COPY . .
 
 # Porta da aplicação
-EXPOSE 3001
+EXPOSE 3000
 
 CMD ["node", "src/server.js"]
