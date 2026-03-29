@@ -62,7 +62,7 @@ jobs:
 
             # Backup dos logs antigos
             if [ $(docker ps -a -q -f name=$CONTAINER_NAME) ]; then
-              echo "💾 Backup logs do container existente..."
+              echo "💾 Backup logs do container existente...."
               docker logs $CONTAINER_NAME > "/tmp/${CONTAINER_NAME}_logs_$(date +%Y%m%d%H%M%S).log" || true
             fi
 
