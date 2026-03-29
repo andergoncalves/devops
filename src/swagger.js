@@ -10,14 +10,14 @@ const options = {
       description: 'API simples de calculadora com Node.js'
     },
     servers: [
-      {
-        url: 'http://localhost:3000'
-      }
+      { url: 'http://localhost:3000' }
     ]
   },
-  apis: [path.join(__dirname, '*.js')] // pega todos os arquivos .js dentro de src
+  apis: [
+    path.join(__dirname, 'routes', '*.js'), // todas as rotas
+    path.join(__dirname, '*.js')            // app.js se tiver rotas
+  ]
 };
 
 const swaggerSpec = swaggerJsdoc(options);
-
 module.exports = swaggerSpec;
