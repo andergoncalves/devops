@@ -46,7 +46,7 @@ jobs:
 
       - name: 🚀 Atualizar container no servidor
         run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << EOF
             set -e
 
             CONTAINER_NAME=${{ secrets.CONTAINER_NAME }}
@@ -60,25 +60,25 @@ jobs:
             echo "📥 Pull da nova imagem..."
             docker pull $ECR_URI:latest
 
-            # Backup dos logs antigos
-            if [ $(docker ps -a -q -f name=$CONTAINER_NAME) ]; then
+            # Verifica se o container existe antes de parar
+            if [ \$(docker ps -aq -f name=\$CONTAINER_NAME) ]; then
               echo "💾 Backup logs do container existente..."
-              docker logs $CONTAINER_NAME > "/tmp/${CONTAINER_NAME}_logs_$(date +%Y%m%d%H%M%S).log" || true
+              docker logs \$CONTAINER_NAME > "/tmp/\${CONTAINER_NAME}_logs_\$(date +%Y%m%d%H%M%S).log" || true
+
+              echo "🛑 Parando e removendo container antigo..."
+              docker stop \$CONTAINER_NAME || true
+              docker rm \$CONTAINER_NAME || true
             fi
 
-            echo "🛑 Parando e removendo container antigo..."
-            docker stop $CONTAINER_NAME || true
-            docker rm $CONTAINER_NAME || true
-
-            echo "🧹 Removendo containers e imagens dangling..."
+            echo "🧹 Limpando containers/imagens dangling..."
             docker system prune -f
 
             echo "🚀 Subindo novo container..."
             docker run -d \
-              -p ${PORT}:${PORT} \
-              --name $CONTAINER_NAME \
+              -p \${PORT}:\${PORT} \
+              --name \$CONTAINER_NAME \
               --restart always \
-              $ECR_URI:latest
+              \$ECR_URI:latest
 
             echo "✅ Deploy finalizado com sucesso!"
           EOF
