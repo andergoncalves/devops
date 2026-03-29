@@ -11,8 +11,7 @@ const options = {
     }
   },
   apis: [
-    './routes/*.js', // ← glob direto, não usar path.join
-    './*.js'
+    path.join(__dirname, 'routes', '*.js').replace(/\\/g, '/'), // todas as rotas
   ]
 };
 
