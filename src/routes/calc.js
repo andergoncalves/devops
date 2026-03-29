@@ -85,7 +85,7 @@ const { historico, salvar } = require('../historicoData');
  *                   type: string
  */
 
-// Função de processamento
+// Processamento do cálculo
 function processCalc(op, a, b, res) {
   const numA = Number(a);
   const numB = Number(b);
@@ -95,13 +95,7 @@ function processCalc(op, a, b, res) {
   }
 
   try {
-    const operacoes = {
-      soma: calc.soma,
-      sub: calc.subtracao,
-      mult: calc.multiplicacao,
-      div: calc.divisao
-    };
-
+    const operacoes = { soma: calc.soma, sub: calc.subtracao, mult: calc.multiplicacao, div: calc.divisao };
     const func = operacoes[op];
     if (!func) return res.status(400).json({ erro: 'Operação inválida' });
 

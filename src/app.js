@@ -9,17 +9,13 @@ app.use(express.json());
 app.use('/calc', require('./routes/calc'));
 app.use('/historico', require('./routes/historico'));
 
-// Swagger
+// Swagger UI
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-// Rota raiz
-app.get('/', (req, res) => {
-  res.redirect('/docs');
-});
+// Rota raiz redireciona para docs
+app.get('/', (req, res) => res.redirect('/docs'));
 
 // 404
-app.use((req, res) => {
-  res.status(404).json({ erro: 'Rota não encontrada' });
-});
+app.use((req, res) => res.status(404).json({ erro: 'Rota não encontrada' }));
 
 module.exports = app;

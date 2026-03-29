@@ -43,14 +43,12 @@ const { historico, salvar } = require('../historicoData');
  */
 
 // GET histórico
-router.get('/', (req, res) => {
-  res.json(historico);
-});
+router.get('/', (req, res) => res.json(historico));
 
 // DELETE histórico
 router.delete('/', (req, res) => {
   historico.length = 0;
-  salvar(); // grava histórico vazio
+  salvar();
   res.json({ mensagem: 'Histórico limpo com sucesso' });
 });
 
