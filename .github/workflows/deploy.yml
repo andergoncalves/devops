@@ -23,15 +23,13 @@ jobs:
       - name: 🔑 Login no ECR
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: 🐳 Build e tag da imagem para ECR
+      - name: 🐳 Build e tag da imagem
         run: |
-          echo "🛠️ Build da imagem para ECR..."
           docker buildx create --use || true
           docker buildx build --no-cache -t ${{ secrets.ECR_REPOSITORY }}:latest . --load
 
       - name: 🚀 Push para ECR
         run: |
-          echo "📤 Push da imagem para ECR..."
           docker push ${{ secrets.ECR_REPOSITORY }}:latest
 
       - name: 🔐 SSH no servidor
@@ -46,8 +44,9 @@ jobs:
             set -e
 
             CONTAINER_NAME=${{ secrets.CONTAINER_NAME }}
-            ECR_URI=${{ secrets.ECR_REPOSITORY }}
             PORT=${{ secrets.CONTAINER_PORT }}
+            # URI completo do ECR
+            ECR_URI=${{ secrets.ECR_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}
 
             echo "🔑 Login no ECR..."
             aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | \
@@ -75,4 +74,4 @@ jobs:
               \$ECR_URI:latest
 
             echo "✅ Deploy finalizado!"
-          EOF
+EOF
