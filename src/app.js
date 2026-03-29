@@ -6,25 +6,37 @@ const swaggerSpec = require('./swagger');
 
 const app = express();
 
+// 🔥 Middleware para JSON
+app.use(express.json());
+
 // 🔥 Histórico em memória
 const historico = [];
 
-// Swagger
+// 🔥 Swagger
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-/**
- * 🔥 ROTA RAIZ
- */
+// 🔥 ROTA RAIZ
 app.get('/', (req, res) => {
   res.redirect('/docs');
 });
 
 /**
- * 🔥 CALCULADORA
+ * 🔥 CALCULAR - USANDO GET (para query) ou POST (para body)
+ * GET /calc?op=soma&a=2&b=3
+ * POST /calc { op: 'soma', a: 2, b: 3 }
  */
-app.get('/calc', (req, res) => {
-  const { op, a, b } = req.query;
+app.route('/calc')
+  .get((req, res) => {
+    const { op, a, b } = req.query;
+    processCalc(op, a, b, res);
+  })
+  .post((req, res) => {
+    const { op, a, b } = req.body;
+    processCalc(op, a, b, res);
+  });
 
+// 🔥 FUNÇÃO DE PROCESSAMENTO DO CÁLCULO
+function processCalc(op, a, b, res) {
   const numA = Number(a);
   const numB = Number(b);
 
@@ -52,7 +64,7 @@ app.get('/calc', (req, res) => {
         return res.status(400).json({ erro: 'Operação inválida' });
     }
 
-    // 🔥 SALVAR HISTÓRICO
+    // 🔥 Salvar histórico
     historico.push({
       operacao: op,
       a: numA,
@@ -66,22 +78,21 @@ app.get('/calc', (req, res) => {
   } catch (err) {
     res.status(400).json({ erro: err.message });
   }
-});
+}
 
 /**
- * 🔥 LISTAR HISTÓRICO
+ * 🔥 HISTÓRICO
+ * GET /historico -> listar
+ * DELETE /historico -> limpar
  */
-app.get('/historico', (req, res) => {
-  res.json(historico);
-});
-
-/**
- * 🔥 LIMPAR HISTÓRICO
- */
-app.delete('/historico', (req, res) => {
-  historico.length = 0;
-  res.json({ mensagem: 'Histórico limpo com sucesso' });
-});
+app.route('/historico')
+  .get((req, res) => {
+    res.json(historico);
+  })
+  .delete((req, res) => {
+    historico.length = 0;
+    res.json({ mensagem: 'Histórico limpo com sucesso' });
+  });
 
 /**
  * 🔥 404
