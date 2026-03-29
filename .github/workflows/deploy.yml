@@ -26,8 +26,8 @@ jobs:
       - name: 🐳 Build da imagem com Buildx
         run: |
           IMAGE_NAME=${{ secrets.CONTAINER_NAME }}
-          docker buildx create --use || true  # Cria builder se não existir
-          docker buildx build -t $IMAGE_NAME . --load
+          docker buildx create --use || true
+          docker buildx build --no-cache -t $IMAGE_NAME . --load
 
       - name: 🏷️ Tag da imagem
         run: |
@@ -47,13 +47,15 @@ jobs:
       - name: 🚀 Atualizar container no servidor
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+            set -e
+
             CONTAINER_NAME=${{ secrets.CONTAINER_NAME }}
             ECR_URI=${{ secrets.ECR_REPOSITORY }}
             PORT=${{ secrets.CONTAINER_PORT }}
 
             echo "🔑 Login no ECR..."
             aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | \
-            docker login --username AWS --password-stdin 197034345540.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+              docker login --username AWS --password-stdin $ECR_URI
 
             echo "📥 Pull da nova imagem..."
             docker pull $ECR_URI:latest
@@ -64,9 +66,12 @@ jobs:
               docker logs $CONTAINER_NAME > "/tmp/${CONTAINER_NAME}_logs_$(date +%Y%m%d%H%M%S).log" || true
             fi
 
-            echo "🛑 Parando container antigo..."
+            echo "🛑 Parando e removendo container antigo..."
             docker stop $CONTAINER_NAME || true
             docker rm $CONTAINER_NAME || true
+
+            echo "🧹 Removendo containers e imagens dangling..."
+            docker system prune -f
 
             echo "🚀 Subindo novo container..."
             docker run -d \
@@ -74,4 +79,6 @@ jobs:
               --name $CONTAINER_NAME \
               --restart always \
               $ECR_URI:latest
+
+            echo "✅ Deploy finalizado com sucesso!"
           EOF
