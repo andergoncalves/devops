@@ -1,21 +1,19 @@
 const express = require('express');
 const calc = require('./calculator');
-
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./swagger');
 
 const app = express();
 
-// 🔥 Middleware para JSON
+// Middleware para JSON
 app.use(express.json());
 
-// 🔥 Histórico em memória
+// Histórico em memória
 const historico = [];
 
-// 🔥 Swagger
+// Swagger
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
-// 🔥 ROTA RAIZ
 /**
  * @swagger
  * /:
@@ -29,7 +27,6 @@ app.get('/', (req, res) => {
   res.redirect('/docs');
 });
 
-// 🔥 ROTA CALC
 /**
  * @swagger
  * /calc:
@@ -102,7 +99,7 @@ app.post('/calc', (req, res) => {
   processCalc(op, a, b, res);
 });
 
-// 🔥 FUNÇÃO DE PROCESSAMENTO DO CÁLCULO
+// Função de processamento do cálculo
 function processCalc(op, a, b, res) {
   const numA = Number(a);
   const numB = Number(b);
@@ -131,7 +128,7 @@ function processCalc(op, a, b, res) {
         return res.status(400).json({ erro: 'Operação inválida' });
     }
 
-    // 🔥 Salvar histórico
+    // Salvar histórico
     historico.push({
       operacao: op,
       a: numA,
@@ -146,7 +143,6 @@ function processCalc(op, a, b, res) {
   }
 }
 
-// 🔥 HISTÓRICO GET
 /**
  * @swagger
  * /historico:
@@ -173,15 +169,6 @@ function processCalc(op, a, b, res) {
  *                   data:
  *                     type: string
  *                     format: date-time
- */
-app.get('/historico', (req, res) => {
-  res.json(historico);
-});
-
-// 🔥 HISTÓRICO DELETE
-/**
- * @swagger
- * /historico:
  *   delete:
  *     summary: Limpa histórico de operações
  *     responses:
@@ -195,12 +182,16 @@ app.get('/historico', (req, res) => {
  *                 mensagem:
  *                   type: string
  */
+app.get('/historico', (req, res) => {
+  res.json(historico);
+});
+
 app.delete('/historico', (req, res) => {
   historico.length = 0;
   res.json({ mensagem: 'Histórico limpo com sucesso' });
 });
 
-// 🔥 ROTA 404 (Handler final)
+// Rota 404
 app.use((req, res) => {
   res.status(404).json({ erro: 'Rota não encontrada' });
 });
