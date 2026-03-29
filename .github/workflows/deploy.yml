@@ -53,12 +53,21 @@ jobs:
             sudo apt install -y nodejs
             node -v
             npm -v
-          EOF
+EOF
 
       - name: 📤 Criar diretório remoto e sincronizar arquivos
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "sudo mkdir -p /var/www/app && sudo chown ${{ secrets.SSH_USER }}:$${{ secrets.SSH_USER }} /var/www/app"
           rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no" ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/var/www/app/
+
+      - name: 📦 Instalar dependências Node.js no servidor
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+            set -e
+            cd /var/www/app
+            echo "⚡ Instalando dependências do Node.js..."
+            npm install
+EOF
 
       - name: 🚀 Atualizar container no servidor
         run: |
@@ -97,4 +106,4 @@ jobs:
               $ECR_URI:latest
 
             echo "✅ Deploy finalizado com sucesso!"
-          EOF
+EOF
