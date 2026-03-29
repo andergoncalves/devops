@@ -16,10 +16,6 @@ const historico = [];
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // 🔥 ROTA RAIZ
-app.get('/', (req, res) => {
-  res.redirect('/docs');
-});
-
 /**
  * @swagger
  * /:
@@ -29,7 +25,11 @@ app.get('/', (req, res) => {
  *       302:
  *         description: Redirecionamento para /docs
  */
+app.get('/', (req, res) => {
+  res.redirect('/docs');
+});
 
+// 🔥 ROTA CALC
 /**
  * @swagger
  * /calc:
@@ -47,13 +47,11 @@ app.get('/', (req, res) => {
  *         schema:
  *           type: number
  *         required: true
- *         description: Número A
  *       - in: query
  *         name: b
  *         schema:
  *           type: number
  *         required: true
- *         description: Número B
  *     responses:
  *       200:
  *         description: Resultado do cálculo
@@ -64,9 +62,6 @@ app.get('/', (req, res) => {
  *               properties:
  *                 resultado:
  *                   type: number
- *       400:
- *         description: Parâmetros inválidos
- *
  *   post:
  *     summary: Realiza operações matemáticas via body JSON
  *     requestBody:
@@ -82,7 +77,6 @@ app.get('/', (req, res) => {
  *             properties:
  *               op:
  *                 type: string
- *                 description: Operação: soma, sub, mult, div
  *               a:
  *                 type: number
  *               b:
@@ -97,69 +91,16 @@ app.get('/', (req, res) => {
  *               properties:
  *                 resultado:
  *                   type: number
- *       400:
- *         description: Parâmetros inválidos
  */
+app.get('/calc', (req, res) => {
+  const { op, a, b } = req.query;
+  processCalc(op, a, b, res);
+});
 
-/**
- * @swagger
- * /historico:
- *   get:
- *     summary: Lista histórico de operações
- *     responses:
- *       200:
- *         description: Lista de operações
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   operacao:
- *                     type: string
- *                   a:
- *                     type: number
- *                   b:
- *                     type: number
- *                   resultado:
- *                     type: number
- *                   data:
- *                     type: string
- *                     format: date-time
- *   delete:
- *     summary: Limpa histórico de operações
- *     responses:
- *       200:
- *         description: Mensagem de sucesso
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 mensagem:
- *                   type: string
- */
-
-/**
- * @swagger
- * /404:
- *   get:
- *     summary: Rota não encontrada
- *     responses:
- *       404:
- *         description: Erro de rota não encontrada
- */
-
-app.route('/calc')
-  .get((req, res) => {
-    const { op, a, b } = req.query;
-    processCalc(op, a, b, res);
-  })
-  .post((req, res) => {
-    const { op, a, b } = req.body;
-    processCalc(op, a, b, res);
-  });
+app.post('/calc', (req, res) => {
+  const { op, a, b } = req.body;
+  processCalc(op, a, b, res);
+});
 
 // 🔥 FUNÇÃO DE PROCESSAMENTO DO CÁLCULO
 function processCalc(op, a, b, res) {
@@ -200,29 +141,66 @@ function processCalc(op, a, b, res) {
     });
 
     res.json({ resultado });
-
   } catch (err) {
     res.status(400).json({ erro: err.message });
   }
 }
 
+// 🔥 HISTÓRICO GET
 /**
- * 🔥 HISTÓRICO
- * GET /historico -> listar
- * DELETE /historico -> limpar
+ * @swagger
+ * /historico:
+ *   get:
+ *     summary: Lista histórico de operações
+ *     responses:
+ *       200:
+ *         description: Lista de operações
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   operacao:
+ *                     type: string
+ *                   a:
+ *                     type: number
+ *                   b:
+ *                     type: number
+ *                   resultado:
+ *                     type: number
+ *                   data:
+ *                     type: string
+ *                     format: date-time
  */
-app.route('/historico')
-  .get((req, res) => {
-    res.json(historico);
-  })
-  .delete((req, res) => {
-    historico.length = 0;
-    res.json({ mensagem: 'Histórico limpo com sucesso' });
-  });
+app.get('/historico', (req, res) => {
+  res.json(historico);
+});
 
+// 🔥 HISTÓRICO DELETE
 /**
- * 🔥 404
+ * @swagger
+ * /historico:
+ *   delete:
+ *     summary: Limpa histórico de operações
+ *     responses:
+ *       200:
+ *         description: Mensagem de sucesso
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 mensagem:
+ *                   type: string
  */
+app.delete('/historico', (req, res) => {
+  historico.length = 0;
+  res.json({ mensagem: 'Histórico limpo com sucesso' });
+});
+
+// 🔥 ROTA 404 (Handler final)
 app.use((req, res) => {
   res.status(404).json({ erro: 'Rota não encontrada' });
 });
