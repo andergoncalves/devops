@@ -23,19 +23,15 @@ jobs:
       - name: 🔑 Login no ECR
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: 🐳 Build da imagem com Buildx
+      - name: 🐳 Build e tag da imagem ECR
         run: |
-          IMAGE_NAME=${{ secrets.CONTAINER_NAME }}
+          echo "🛠️ Build da imagem para ECR..."
           docker buildx create --use || true
-          docker buildx build --no-cache -t $IMAGE_NAME . --load
-
-      - name: 🏷️ Tag da imagem
-        run: |
-          IMAGE_NAME=${{ secrets.CONTAINER_NAME }}
-          docker tag $IMAGE_NAME:latest ${{ secrets.ECR_REPOSITORY }}:latest
+          docker buildx build --no-cache -t ${{ secrets.ECR_REPOSITORY }}:latest . --load
 
       - name: 🚀 Push para ECR
         run: |
+          echo "📤 Push da imagem para ECR..."
           docker push ${{ secrets.ECR_REPOSITORY }}:latest
 
       - name: 🔐 SSH no servidor
