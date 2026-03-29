@@ -6,7 +6,7 @@ const options = {
     openapi: '3.0.0',
     info: {
       title: 'API DevOps - Calculadora',
-      version: '1.0.1',
+      version: '1.0.2',
       description: 'API simples de calculadora com Node.js'
     }
   },
