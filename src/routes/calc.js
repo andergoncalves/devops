@@ -89,16 +89,16 @@ function processCalc(op, a, b, res) {
     switch (op) {
       case 'soma':
         resultado = calc.soma(numA, numB);
-        break;
+        /*break;*/
       case 'sub':
         resultado = calc.subtracao(numA, numB);
-        break;
+        /*break;*/
       case 'mult':
         resultado = calc.multiplicacao(numA, numB);
-        break;
+        /*break;*/
       case 'div':
         resultado = calc.divisao(numA, numB);
-        break;
+        /*break;*/
       default:
         return res.status(400).json({ erro: 'Operação inválida' });
     }
