@@ -14,7 +14,7 @@ const { historico, salvar } = require('../historicoData');
  *         schema:
  *           type: string
  *         required: true
- *         description: Operação: soma, sub, mult, div
+ *         description: "Operação: soma, sub, mult, div"
  *       - in: query
  *         name: a
  *         schema:
@@ -27,7 +27,7 @@ const { historico, salvar } = require('../historicoData');
  *         required: true
  *     responses:
  *       200:
- *         description: Resultado do cálculo
+ *         description: "Resultado do cálculo"
  *         content:
  *           application/json:
  *             schema:
@@ -36,7 +36,7 @@ const { historico, salvar } = require('../historicoData');
  *                 resultado:
  *                   type: number
  *       400:
- *         description: Parâmetros inválidos
+ *         description: "Parâmetros inválidos"
  *         content:
  *           application/json:
  *             schema:
@@ -59,14 +59,14 @@ const { historico, salvar } = require('../historicoData');
  *             properties:
  *               op:
  *                 type: string
- *                 description: Operação: soma, sub, mult, div
+ *                 description: "Operação: soma, sub, mult, div"
  *               a:
  *                 type: number
  *               b:
  *                 type: number
  *     responses:
  *       200:
- *         description: Resultado do cálculo
+ *         description: "Resultado do cálculo"
  *         content:
  *           application/json:
  *             schema:
@@ -75,7 +75,7 @@ const { historico, salvar } = require('../historicoData');
  *                 resultado:
  *                   type: number
  *       400:
- *         description: Parâmetros inválidos
+ *         description: "Parâmetros inválidos"
  *         content:
  *           application/json:
  *             schema:
@@ -85,7 +85,7 @@ const { historico, salvar } = require('../historicoData');
  *                   type: string
  */
 
-// Processamento do cálculo
+// Função de processamento do cálculo
 function processCalc(op, a, b, res) {
   const numA = Number(a);
   const numB = Number(b);
@@ -95,7 +95,13 @@ function processCalc(op, a, b, res) {
   }
 
   try {
-    const operacoes = { soma: calc.soma, sub: calc.subtracao, mult: calc.multiplicacao, div: calc.divisao };
+    const operacoes = {
+      soma: calc.soma,
+      sub: calc.subtracao,
+      mult: calc.multiplicacao,
+      div: calc.divisao
+    };
+
     const func = operacoes[op];
     if (!func) return res.status(400).json({ erro: 'Operação inválida' });
 
